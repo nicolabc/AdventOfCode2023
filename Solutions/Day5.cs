@@ -89,24 +89,13 @@ namespace Solutions
             });
             var addCurrentLineToMap = false;
             var CurrentAllMapsIndex = -1; //Start at -1 due to a gap between seeds and seeds-to-soil map
+            List<string> seedsRawAsStrings = new();
             foreach (var line in allLines)
             {
                 if (line.StartsWith("seeds: "))
                 {
                     var splitted = line.Split("seeds: ")[1];
-                    var seedsRawAsStrings = splitted.Split(" ");
-                    //Brute force solution
-                    for (var i = 0; i < seedsRawAsStrings.Length; i+=2)
-                    {
-                        var count = 0;
-                        var rangeForSeed = long.Parse(seedsRawAsStrings[i + 1]);
-                        var seedStart = long.Parse(seedsRawAsStrings[i]);
-                        while (count < rangeForSeed)
-                        {
-                            almanac.Seeds.Add(seedStart + count);
-                            count++;
-                        }
-                    }
+                    seedsRawAsStrings = splitted.Split(" ").ToList();
                 }
 
                 if (line.Contains("map:"))
@@ -127,7 +116,42 @@ namespace Solutions
                 }
             }
 
-            var lowestDestination = almanac.GetLowestDestination();
+            //// Optimizing solution
+            //for (var i = 0; i < seedsRawAsStrings.Count; i += 2)
+            //{
+            //    var count = 0;
+            //    var rangeForSeed = long.Parse(seedsRawAsStrings[i + 1]);
+            //    var seedStart = long.Parse(seedsRawAsStrings[i]);
+            //    while (count < rangeForSeed)
+            //    {
+            //        almanac.Seeds.Add(seedStart + count);
+            //        count++;
+            //    }
+            //}
+
+            // Optimizing solution
+            var allLocations = new List<long>();
+            var skippableLength = (long)0;
+            var lastSeedNotSkipped = (long)0;
+            for (var i = 0; i < seedsRawAsStrings.Count; i += 2)
+            {
+                var count = 0;
+                var rangeForSeed = long.Parse(seedsRawAsStrings[i + 1]);
+                var seedStart = long.Parse(seedsRawAsStrings[i]);
+                while (count < rangeForSeed)
+                {
+                    almanac.Seeds.Add(seedStart + count);
+                    count++;
+
+                    var currentSeed = seedStart + count;
+                    if (currentSeed < lastSeedNotSkipped + skippableLength && currentSeed > lastSeedNotSkipped) continue;
+                    (var location, skippableLength) = almanac.GetLocation(currentSeed, almanac.AllMaps);
+                    allLocations.Add(location);
+                    lastSeedNotSkipped = currentSeed;
+                }
+            }
+
+            var lowestDestination = allLocations.Min();
             Console.WriteLine(lowestDestination);
             return (int)lowestDestination;
         }
@@ -158,40 +182,57 @@ namespace Solutions
             });
         }
 
-        public virtual long GetLowestDestination()
+        public long GetLowestDestination()
         {
             var allLocations = new List<long>();
-            foreach (var seed in Seeds)
+            var skippableLength = (long)0;
+            var lastSeedNotSkipped = (long)0;
+            for (var i = 0; i < Seeds.Count; i++)
             {
-                allLocations.Add(GetLocation(seed, AllMaps));
+                var currentSeed = Seeds[i];
+                if (currentSeed < lastSeedNotSkipped + skippableLength && currentSeed > lastSeedNotSkipped)
+                {
+                    Console.WriteLine("Skipping!");
+                    continue;
+                };
+                (var location, skippableLength) = GetLocation(currentSeed, AllMaps);
+                allLocations.Add(location);
+                lastSeedNotSkipped = currentSeed;
             }
 
             return allLocations.Min();
         }
 
-        public long GetLocation(long seed, List<List<Map>> allMapsInOrder)
+        public (long, long) GetLocation(long seed, List<List<Map>> allMapsInOrder)
         {
             var currentPosition = seed;
+            long upperBoundSkippableDestination = long.MaxValue;
             foreach (var maps in allMapsInOrder)
             {
-                currentPosition = GetDestination(currentPosition, maps);
+                (currentPosition, var skippableLength) = GetDestination(currentPosition, maps);
+                if (skippableLength < upperBoundSkippableDestination) upperBoundSkippableDestination = skippableLength;
             }
 
-            return currentPosition;
+            return (currentPosition, upperBoundSkippableDestination);
         }
 
-        public long GetDestination(long input, List<Map> maps)
+        public (long, long) GetDestination(long input, List<Map> maps)
         {
+            var lowestHigherRangeStart = long.MaxValue;
             foreach (var map in maps)
             {
+
                 if (input >= map.SourceRangeStart && input < map.SourceRangeStart + map.RangeLength)
                 {
                     var transformationLength = input - map.SourceRangeStart;
-                    return map.DestinationRangeStart + transformationLength;
+                    var skippableLength = map.SourceRangeStart + map.RangeLength - input;
+                    return (map.DestinationRangeStart + transformationLength, skippableLength);
                 }
+
+                if (input < map.SourceRangeStart && map.SourceRangeStart < lowestHigherRangeStart) lowestHigherRangeStart = map.SourceRangeStart;
             }
 
-            return input;
+            return (input, lowestHigherRangeStart-input);
         }
     }
 
