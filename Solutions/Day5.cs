@@ -76,13 +76,66 @@ namespace Solutions
         public override int SecondQuestion(string filename)
         {
             var allLines = GetAllLines(filename);
-            return -1;
+            var almanac = new Almanac();
+            almanac.AllMaps.AddRange(
+            new List<List<Map>> {
+                almanac.SeedToSoilMaps,
+                almanac.SoilToFertilizerMaps,
+                almanac.FertilizerToWaterMaps,
+                almanac.WaterToLightMaps,
+                almanac.LightToTemperatureMaps,
+                almanac.TemperatureToHumidityMaps,
+                almanac.HumidityToLocationMaps,
+            });
+            var addCurrentLineToMap = false;
+            var CurrentAllMapsIndex = -1; //Start at -1 due to a gap between seeds and seeds-to-soil map
+            foreach (var line in allLines)
+            {
+                if (line.StartsWith("seeds: "))
+                {
+                    var splitted = line.Split("seeds: ")[1];
+                    var seedsRawAsStrings = splitted.Split(" ");
+                    //Brute force solution
+                    for (var i = 0; i < seedsRawAsStrings.Length; i+=2)
+                    {
+                        var count = 0;
+                        var rangeForSeed = long.Parse(seedsRawAsStrings[i + 1]);
+                        var seedStart = long.Parse(seedsRawAsStrings[i]);
+                        while (count < rangeForSeed)
+                        {
+                            almanac.Seeds.Add(seedStart + count);
+                            count++;
+                        }
+                    }
+                }
+
+                if (line.Contains("map:"))
+                {
+                    addCurrentLineToMap = true;
+                    continue;
+                }
+
+                if (line == "")
+                {
+                    CurrentAllMapsIndex++;
+                    continue;
+                }
+
+                if (addCurrentLineToMap)
+                {
+                    almanac.AddLineToMap(line, almanac.AllMaps[CurrentAllMapsIndex]);
+                }
+            }
+
+            var lowestDestination = almanac.GetLowestDestination();
+            Console.WriteLine(lowestDestination);
+            return (int)lowestDestination;
         }
     }
 
     public class Almanac
     {
-        public List<long> Seeds { get; set; }
+        public List<long> Seeds { get; set; } = new();
         public List<Map> SeedToSoilMaps { get; set; } = new();
         public List<Map> SoilToFertilizerMaps { get; set; } = new();
         public List<Map> FertilizerToWaterMaps { get; set; } = new();
@@ -105,7 +158,7 @@ namespace Solutions
             });
         }
 
-        public long GetLowestDestination()
+        public virtual long GetLowestDestination()
         {
             var allLocations = new List<long>();
             foreach (var seed in Seeds)

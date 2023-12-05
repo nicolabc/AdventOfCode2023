@@ -22,13 +22,23 @@ namespace UnitTests
         }
 
         [Test]
-        public void FirstQuestion_ShouldPass_FirstExample()
+        public void FirstQuestion_ShouldPass_Example()
         {
             var filename = folderName + @"\example1.txt";
             
             var solution = adventDaySolution.FirstQuestion(filename);
             
             solution.Should().Be(35);
+        }
+
+        [Test]
+        public void SecondQuestion_ShouldPass_Example()
+        {
+            var filename = folderName + @"\example1.txt";
+
+            var solution = adventDaySolution.SecondQuestion(filename);
+
+            solution.Should().Be(46);
         }
     }
 }
