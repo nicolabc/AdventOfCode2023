@@ -21,6 +21,11 @@ namespace Solutions
             var time = GetListOfNumbers(allLines.First());
             var distanceRecords = GetListOfNumbers(allLines.Last());
 
+            return GetMultipliedWaysToBeatRecord(time, distanceRecords);
+        }
+
+        private int GetMultipliedWaysToBeatRecord(List<long> time, List<long> distanceRecords)
+        {
             var numberOfWaysToBeatTheRecord = new List<int>();
             var multipliedWaysToBeatRecord = 1;
             for (int i = 0; i < time.Count; i++)
@@ -33,7 +38,7 @@ namespace Solutions
             return multipliedWaysToBeatRecord;
         }
 
-        private int GetNumberOfWaysToBeatTheRecord(int timeInTheRace, int currentRecord)
+        private int GetNumberOfWaysToBeatTheRecord(long timeInTheRace, long currentRecord)
         {
             // Distance travelled as a function of t where t is the time (variable) to hold the button
             // and where T is Time in the race :
@@ -55,11 +60,11 @@ namespace Solutions
             return t_higher - t_lower + 1;
         }
 
-        private List<int> GetListOfNumbers(string firstLine)
+        private List<long> GetListOfNumbers(string firstLine)
         {
             var cleanedList = firstLine.Split(" ", StringSplitOptions.RemoveEmptyEntries);
             var numbersAsStrings = cleanedList.Where(x => !x.Contains(':'));
-            return numbersAsStrings.Select(x => int.Parse(x)).ToList();
+            return numbersAsStrings.Select(x => long.Parse(x)).ToList();
         }
 
         public override int SecondQuestion()
@@ -70,7 +75,17 @@ namespace Solutions
         public override int SecondQuestion(string filename)
         {
             var allLines = GetAllLines(filename);
-            return -1;
+            var time = GetNumberWithoutSpaces(allLines.First());
+            var distanceRecords = GetNumberWithoutSpaces(allLines.Last());
+
+            return GetMultipliedWaysToBeatRecord(time, distanceRecords);
+        }
+
+        private List<long> GetNumberWithoutSpaces(string firstLine)
+        {
+            var test = firstLine.Replace(" ", "");
+            var cleanedList = test.Split(":")[1];
+            return new List<long>() { long.Parse(cleanedList) };
         }
     }
 }

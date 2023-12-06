@@ -30,5 +30,15 @@ namespace UnitTests
             
             solution.Should().Be(288);
         }
+
+        [Test]
+        public void SecondQuestion_ShouldPass_Example()
+        {
+            var filename = folderName + @"\example1.txt";
+
+            var solution = adventDaySolution.SecondQuestion(filename);
+
+            solution.Should().Be(71503);
+        }
     }
 }
