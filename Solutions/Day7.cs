@@ -17,20 +17,32 @@ namespace Solutions
 
         public override int FirstQuestion(string filename)
         {
+            return GeneralSolution(filename, QuestionNumber.QuestionOne);
+        }
+
+        public int GeneralSolution(string filename, QuestionNumber question)
+        {
             var allLines = GetAllLines(filename);
             var sortedCamelCardEntries = new SortedSet<CamelCardEntry>(new ByStrength());
 
             foreach (var line in allLines)
             {
                 var handBetList = line.Split(" ");
-                sortedCamelCardEntries.Add(new CamelCardEntry(handBetList.First(), int.Parse(handBetList.Last())));
+                if (question == QuestionNumber.QuestionOne)
+                {
+                    sortedCamelCardEntries.Add(new CamelCardEntry(handBetList.First(), int.Parse(handBetList.Last())));
+                }
+                else
+                {
+                    sortedCamelCardEntries.Add(new CamelCardEntryPart2(handBetList.First(), int.Parse(handBetList.Last())));
+                }
             }
 
             var rankCounter = 1;
             var totalWinnings = 0;
             foreach (var s in sortedCamelCardEntries)
             {
-                Console.WriteLine($"\t{s.Hand} : {s.Bid}");
+                /* Console.WriteLine($"\t{s.Hand} : {s.Bid}"); */
                 totalWinnings += s.Bid * rankCounter;
                 rankCounter++;
             }
@@ -42,10 +54,14 @@ namespace Solutions
             return SecondQuestion(Filename);
         }
 
+        public enum QuestionNumber
+        {
+            QuestionOne = 1, QuestionTwo
+        }
+
         public override int SecondQuestion(string filename)
         {
-            var allLines = GetAllLines(filename);
-            return -1;
+            return GeneralSolution(filename, QuestionNumber.QuestionTwo);
         }
     }
     
@@ -60,18 +76,24 @@ namespace Solutions
         public string Hand { get; set; }
         public int Bid { get; set; }
 
-        public HandType GetHandType()
+        public virtual HandType GetHandType()
         {
             var cardCounts = new Dictionary<char, int>();
             foreach (var card in Hand)
             {
-                if (cardCounts.ContainsKey(card)) {
+                if (cardCounts.ContainsKey(card))
+                {
                     cardCounts[card]++;
                     continue;
                 }
                 cardCounts.Add(card, 1);
             }
 
+            return MapToHandType(cardCounts);
+        }
+
+        protected static HandType MapToHandType(Dictionary<char, int> cardCounts)
+        {
             if (cardCounts.ContainsValue(5)) return HandType.FiveOfAKind;
             if (cardCounts.ContainsValue(4)) return HandType.FourOfAKind;
             if (cardCounts.ContainsValue(3))
@@ -95,7 +117,7 @@ namespace Solutions
             FiveOfAKind
         }
 
-        public int GetCardValue(char card)
+        public virtual int GetCardValue(char card)
         {
             return card switch
             {
@@ -127,6 +149,48 @@ namespace Solutions
                 }
             }
             throw new Exception("No card in the hand was higher than the other. Error!");
+        }
+    }
+
+    public class CamelCardEntryPart2 : CamelCardEntry
+    {
+        public CamelCardEntryPart2(string hand, int bid) : base(hand, bid)
+        {
+        }
+
+        public override int GetCardValue(char card)
+        {
+            var value = base.GetCardValue(card);
+            return value != 11 ? value : 1;
+        }
+
+        public override HandType GetHandType()
+        {
+            var cardCounts = new Dictionary<char, int>();
+            var JCounts = 0;
+            foreach (var card in Hand)
+            {
+                if (card == 'J')
+                {
+                    JCounts++;
+                    continue;
+                }
+                if (cardCounts.ContainsKey(card))
+                {
+                    cardCounts[card]++;
+                    continue;
+                }
+                cardCounts.Add(card, 1);
+            }
+
+            if (JCounts == Hand.Length) cardCounts.Add('J', JCounts);
+            else if (JCounts > 0)
+            {
+                var keyMax = cardCounts.MaxBy(x => x.Value).Key;
+                cardCounts[keyMax] += JCounts;
+            }
+
+            return MapToHandType(cardCounts);
         }
     }
 }
