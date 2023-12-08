@@ -54,7 +54,7 @@ namespace Solutions
 
         private static int RecursiveScratch(List<string> subListLines, int gameIndex, List<string> allLines, ref int totalScratchCards)
         {
-            gameIndex++;
+            if (subListLines.Count == 0) return 0;
             for (var i = 0; i < subListLines.Count; i++)
             {
                 var rgx = new Regex(@"\:|\|"); // Match ':' or '|'
@@ -70,9 +70,9 @@ namespace Solutions
                     if (winningNumbers.Contains(myNumbers[j])) wins++;
                 }
 
-                RecursiveScratch(allLines.Skip(gameIndex).Take(wins).ToList(), gameIndex, allLines, ref totalScratchCards);
+                RecursiveScratch(allLines.Skip(gameIndex++).Take(wins).ToList(), gameIndex, allLines, ref totalScratchCards);
             }
-            totalScratchCards += 1; //Something with the count, the actual traversal is correct
+            totalScratchCards += 1;
             return 0;
         }
     }
