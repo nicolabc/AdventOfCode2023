@@ -1,6 +1,6 @@
 ﻿using Repository;
 
-namespace Solutions
+namespace Solutions.AlternativeSolutions
 {
     public class Day8 : AdventSolutionBase
     {
@@ -23,33 +23,18 @@ namespace Solutions
 
             BuildMap(allLines, map);
 
-            int steps = GetStepsTraversingMap(map, instructions, "AAA");
+            var steps = 0;
+            TraverseMap(instructions, map, "AAA", ref steps);
             return steps;
         }
 
-        private void BuildMap(IEnumerable<string> allLines, Dictionary<string, Node> map)
+        // Literally getting stackOverflowException using this as the solution :(
+        private void TraverseMap(string instructions, Dictionary<string, Node> map, string currentNode, ref int steps)
         {
-            foreach (var line in allLines.Skip(2))
-            {
-                var nodes = line.Split(" ", StringSplitOptions.RemoveEmptyEntries);
-
-                var element = line.Substring(0, 3);
-                map.Add(element, new Node(nodes[2].Substring(1, 3), nodes[3].Substring(0, 3))); // Substring gets the node letters without '(,' and ')'
-            }
-        }
-
-        private int GetStepsTraversingMap(Dictionary<string, Node> map, string instructions, string startingNode)
-        {
-            var stepCount = 0;
-            var currentNode = startingNode;
-            while (currentNode != "ZZZ")
-            {
-                var currentStep = stepCount % instructions.Length;
-                currentNode = instructions[currentStep] == 'L' ? map[currentNode].Left : map[currentNode].Right;
-                stepCount++;
-            }
-
-            return stepCount;
+            var recurringSteps = steps % instructions.Length;
+            if (currentNode == "ZZZ") return;
+            TraverseMap(instructions, map, instructions[recurringSteps] == 'L' ? map[currentNode].Left : map[currentNode].Right, ref steps);
+            steps++;
         }
 
         public class Node
@@ -61,6 +46,17 @@ namespace Solutions
             {
                 Left = left;
                 Right = right;
+            }
+        }
+
+        private void BuildMap(IEnumerable<string> allLines, Dictionary<string, Node> map)
+        {
+            foreach (var line in allLines.Skip(2))
+            {
+                var nodes = line.Split(" ", StringSplitOptions.RemoveEmptyEntries);
+
+                var element = line.Substring(0, 3);
+                map.Add(element, new Node(nodes[2].Substring(1, 3), nodes[3].Substring(0, 3))); // Substring gets the node letters without '(,' and ')'
             }
         }
 
