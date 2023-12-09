@@ -604,3 +604,4 @@ $RECYCLE.BIN/
 # End of https://www.toptal.com/developers/gitignore/api/visualstudio,csharp,windows
 /.editorconfig
 /Solutions/DayMal.cs
+/Repository/Data/*
