@@ -1,4 +1,5 @@
 ﻿using Repository;
+using System.Data;
 
 namespace Solutions
 {
@@ -73,41 +74,87 @@ namespace Solutions
         {
             var allLines = GetAllLines(filename);
             var map = new Dictionary<string, Node>();
-            BuildMap(allLines, map, out List<string> startingNodes);
+            BuildMap(allLines, map, out List<Ghost> startingNodes);
 
             var instructions = allLines.First();
-            long steps = GetStepsTraversingMap(map, instructions, startingNodes);
+            var stepsToZForEachGhost = GetStepsToZForEachGhost(map, instructions, startingNodes);
+
+            var steps = GetLeastCommonMultiplier(stepsToZForEachGhost);
             Console.WriteLine($"Solutions in long format is {steps}");
             return (int)steps;
         }
 
-        private long GetStepsTraversingMap(Dictionary<string, Node> map, string instructions, List<string> startingNodes)
+        private long GetLeastCommonMultiplier(List<long> integers)
+        {
+            long leastCommonMuliple = integers.First();
+
+            for (var i = 1; i < integers.Count(); i++)
+            {
+                leastCommonMuliple = GetLeastCommonMultiple(leastCommonMuliple, integers[i]);
+            }
+
+            return leastCommonMuliple;
+        }
+
+        public long GetLeastCommonMultiple(long a, long b)
+        {
+            return Math.Abs(a) * Math.Abs(b) / GetGreatestCommonDivsor(a, b);
+        }
+
+        public long GetGreatestCommonDivsor(long a, long b)
+        {
+            while (b != 0)
+            {
+                var bPrevious = b;
+                b = a % b;
+
+                a = bPrevious;
+            }
+            return Math.Abs(a);
+        }
+
+        private List<long> GetStepsToZForEachGhost(Dictionary<string, Node> map, string instructions, List<Ghost> ghosts)
         {
             var stepCount = (long)0;
-            var currentNodes = startingNodes.ToList();
-            while (currentNodes.Any(x => x[2] != 'Z'))
+            while (ghosts.Any(x => x.CurrentNode[2] != 'Z'))
             {
                 var currentStep = (int)stepCount % instructions.Length;
-                for (var i = 0; i < currentNodes.Count; i++)
+                // Traverse each ghost that has not yet reached Z
+                for (var i = 0; i < ghosts.Count; i++)
                 {
-                    currentNodes[i] = instructions[currentStep] == 'L' ? map[currentNodes[i]].Left : map[currentNodes[i]].Right;
+                    if (ghosts[i].StepsToZ != null) continue;
+
+                    var currentNode = instructions[currentStep] == 'L' ? map[ghosts[i].CurrentNode].Left : map[ghosts[i].CurrentNode].Right;
+                    ghosts[i].CurrentNode = currentNode;
+
+                    if (currentNode[2] == 'Z') ghosts[i].StepsToZ = stepCount + 1;
                 }
                 stepCount++;
             }
-
-            return stepCount;
+            return ghosts.Select(x => x.StepsToZ ?? throw new NoNullAllowedException()).ToList();
         }
 
-        private void BuildMap(IEnumerable<string> allLines, Dictionary<string, Node> map, out List<string> startingNodes)
+        private void BuildMap(IEnumerable<string> allLines, Dictionary<string, Node> map, out List<Ghost> initializedGhosts)
         {
-            startingNodes = new List<string>();
+            initializedGhosts = new List<Ghost>();
             foreach (var line in allLines.Skip(2))
             {
                 var nodes = line.Split(" ", StringSplitOptions.RemoveEmptyEntries);
 
                 var element = line.Substring(0, 3);
                 map.Add(element, new Node(nodes[2].Substring(1, 3), nodes[3].Substring(0, 3))); // Substring gets the node letters without '(,' and ')'
-                if (element[2] == 'A') startingNodes.Add(element);
+                if (element[2] == 'A') initializedGhosts.Add(new Ghost(element));
+            }
+        }
+
+        public class Ghost
+        {
+            public string CurrentNode;
+            public long? StepsToZ;
+
+            public Ghost(string currentNode)
+            {
+                CurrentNode = currentNode;
             }
         }
     }
