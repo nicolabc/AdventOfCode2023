@@ -4,7 +4,7 @@
 
 ## About the Project
 
-Advent of Code is an annual event that consists of a series of small programming puzzles, one for each day of December leading up to Christmas.
+[Advent of Code](https://adventofcode.com/2023) is an annual event that consists of a series of small programming puzzles, one for each day of December leading up to Christmas.
 This repository contains my solutions to the Advent of Code 2023 puzzles, written in C#.
 
 ## Getting Started
