@@ -17,6 +17,12 @@ namespace Solutions
 
         public override int FirstQuestion(string filename)
         {
+            var question = 1;
+            return GeneralSolution(filename, question);
+        }
+
+        private int GeneralSolution(string filename, int question)
+        {
             var allLines = GetAllLines(filename);
             var nextValues = new List<int>();
             foreach (var line in allLines)
@@ -36,19 +42,21 @@ namespace Solutions
                     j++;
                 }
 
-                nextValues.Add(CalculateNextValue(sequences));
+                nextValues.Add(CalculateValue(sequences, question));
             }
 
             return nextValues.Sum();
         }
+
+        public int CalculateValue(List<List<int>> sequences, int question) => question == 1 ? CalculateNextValue(sequences) : CalculatePreviousValue(sequences);
 
         public int CalculateNextValue(List<List<int>> sequences)
         {
             for (var i = sequences.Count - 1; i > 0; i--)
             {
                 if (i == sequences.Count - 1) sequences[i].Add(0);
-                var j = sequences[i - 1].Count - 1;
-                var nextValue = sequences[i][j] + sequences[i - 1][j];
+
+                var nextValue = sequences[i].Last() + sequences[i - 1].Last();
                 sequences[i - 1].Add(nextValue);
             }
 
@@ -62,8 +70,21 @@ namespace Solutions
 
         public override int SecondQuestion(string filename)
         {
-            var allLines = GetAllLines(filename);
-            return -1;
+            var question = 2;
+            return GeneralSolution(filename, question);
+        }
+
+        public int CalculatePreviousValue(List<List<int>> sequences)
+        {
+            for (var i = sequences.Count - 1; i > 0; i--)
+            {
+                if (i == sequences.Count - 1) sequences[i] = sequences[i].Prepend(0).ToList();
+
+                var nextValue = sequences[i - 1].First() - sequences[i].First();
+                sequences[i - 1] = sequences[i - 1].Prepend(nextValue).ToList();
+            }
+
+            return sequences.First().First();
         }
     }
 }
