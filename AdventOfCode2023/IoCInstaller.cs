@@ -10,7 +10,7 @@ namespace Installer
         {
             var serviceProvider = new ServiceCollection()
                 .AddSingleton<IDataRetriever, DataRetriever>()
-                .AddSingleton<IAdventSolution, Day8>()
+                .AddSingleton<IAdventSolution, Day9>()
                 .BuildServiceProvider(validateScopes: true);
             return serviceProvider;
         }
