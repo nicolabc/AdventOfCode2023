@@ -24,7 +24,7 @@ namespace UnitTests
         }
 
         [TestCase("HASH")]
-        public void SecondQuestion_ShouldPass_Example(string stringToHash)
+        public void HashString_ShouldPass_Example(string stringToHash)
         {
             var day15 = new Day15(A.Fake<IDataRetriever>());
 
@@ -41,6 +41,17 @@ namespace UnitTests
             var solution = adventDaySolution.FirstQuestion(filename);
             
             solution.Should().Be(1320);
+        }
+
+
+        [Test]
+        public void SecondQuestion_ShouldPass_Example()
+        {
+            var filename = folderName + @"\example1.txt";
+
+            var solution = adventDaySolution.SecondQuestion(filename);
+
+            solution.Should().Be(145);
         }
     }
 }
